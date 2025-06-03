@@ -1,36 +1,35 @@
-
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { EnergyDashboard } from '@/components/EnergyDashboard';
-import { GameficationPanel } from '@/components/GameficationPanel';
-import { SeatingLayout } from '@/components/SeatingLayout';
-import { ActivityLogger } from '@/components/ActivityLogger';
-import { UserProfile } from '@/components/UserProfile';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { Leaf, Zap, Users, Award, Bell, Settings, LogOut } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { EnergyDashboard } from "@/components/EnergyDashboard";
+import { GameficationPanel } from "@/components/GameficationPanel";
+import { SeatingLayout } from "@/components/SeatingLayout";
+import { ActivityLogger } from "@/components/ActivityLogger";
+import { UserProfile } from "@/components/UserProfile";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { Leaf, Zap, Users, Award, Bell, Settings, LogOut } from "lucide-react";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate("/auth");
   };
 
   if (authLoading || profileLoading) {
@@ -64,12 +63,17 @@ const Index = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                   EcoTrack
                 </h1>
-                <p className="text-sm text-gray-600">Renewable Energy Dashboard</p>
+                <p className="text-sm text-gray-600">
+                  Renewable Energy Dashboard
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200">
+              <Badge
+                variant="secondary"
+                className="bg-green-100 text-green-700 hover:bg-green-200"
+              >
                 <Award className="h-4 w-4 mr-1" />
                 {profile.awe_points} Awe Points
               </Badge>
@@ -82,12 +86,6 @@ const Index = () => {
               <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut className="h-5 w-5" />
               </Button>
-              <Avatar>
-                <AvatarImage src={profile.avatar_url || '/placeholder.svg'} alt={profile.full_name} />
-                <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                  {profile.full_name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
             </div>
           </div>
         </div>
@@ -95,25 +93,44 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm">
-            <TabsTrigger value="dashboard" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="dashboard"
+              className="flex items-center space-x-2"
+            >
               <Zap className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="gamification" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="gamification"
+              className="flex items-center space-x-2"
+            >
               <Award className="h-4 w-4" />
               <span className="hidden sm:inline">Rewards</span>
             </TabsTrigger>
-            <TabsTrigger value="seating" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="seating"
+              className="flex items-center space-x-2"
+            >
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Seating</span>
             </TabsTrigger>
-            <TabsTrigger value="activities" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="activities"
+              className="flex items-center space-x-2"
+            >
               <Leaf className="h-4 w-4" />
               <span className="hidden sm:inline">Activities</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="profile"
+              className="flex items-center space-x-2"
+            >
               <Avatar className="h-4 w-4">
                 <AvatarFallback className="text-xs">P</AvatarFallback>
               </Avatar>
@@ -127,14 +144,15 @@ const Index = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-xl font-semibold text-gray-800">
-                      Welcome back, {profile.full_name.split(' ')[0]}! 🌱
+                      Welcome back, {profile.full_name.split(" ")[0]}! 🌱
                     </CardTitle>
                     <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
                       {profile.level}
                     </Badge>
                   </div>
                   <p className="text-gray-600">
-                    You're making a difference! Keep up the great work in our sustainability journey.
+                    You're making a difference! Keep up the great work in our
+                    sustainability journey.
                   </p>
                 </CardHeader>
               </Card>
@@ -143,13 +161,15 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="gamification">
-            <GameficationPanel user={{
-              name: profile.full_name,
-              email: profile.email,
-              awePoints: profile.awe_points,
-              level: profile.level,
-              avatar: profile.avatar_url || '/placeholder.svg'
-            }} />
+            <GameficationPanel
+              user={{
+                name: profile.full_name,
+                email: profile.email,
+                awePoints: profile.awe_points,
+                level: profile.level,
+                avatar: profile.avatar_url || "/placeholder.svg",
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="seating">
@@ -161,13 +181,15 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="profile">
-            <UserProfile user={{
-              name: profile.full_name,
-              email: profile.email,
-              awePoints: profile.awe_points,
-              level: profile.level,
-              avatar: profile.avatar_url || '/placeholder.svg'
-            }} />
+            <UserProfile
+              user={{
+                name: profile.full_name,
+                email: profile.email,
+                awePoints: profile.awe_points,
+                level: profile.level,
+                avatar: profile.avatar_url || "/placeholder.svg",
+              }}
+            />
           </TabsContent>
         </Tabs>
       </main>
