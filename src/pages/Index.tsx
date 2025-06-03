@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -11,17 +12,43 @@ import { GameficationPanel } from '@/components/GameficationPanel';
 import { SeatingLayout } from '@/components/SeatingLayout';
 import { ActivityLogger } from '@/components/ActivityLogger';
 import { UserProfile } from '@/components/UserProfile';
-import { Leaf, Zap, Users, Award, Bell, Settings } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { Leaf, Zap, Users, Award, Bell, Settings, LogOut } from 'lucide-react';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [user] = useState({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@company.com',
-    awePoints: 1250,
-    level: 'Eco Champion',
-    avatar: '/placeholder.svg'
-  });
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <Leaf className="h-8 w-8 text-white animate-pulse" />
+          </div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
@@ -44,7 +71,7 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200">
                 <Award className="h-4 w-4 mr-1" />
-                {user.awePoints} Awe Points
+                {profile.awe_points} Awe Points
               </Badge>
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
@@ -52,10 +79,13 @@ const Index = () => {
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
               </Button>
+              <Button variant="ghost" size="icon" onClick={handleSignOut}>
+                <LogOut className="h-5 w-5" />
+              </Button>
               <Avatar>
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={profile.avatar_url || '/placeholder.svg'} alt={profile.full_name} />
                 <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                  {user.name.split(' ').map(n => n[0]).join('')}
+                  {profile.full_name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -97,10 +127,10 @@ const Index = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-xl font-semibold text-gray-800">
-                      Welcome back, {user.name.split(' ')[0]}! 🌱
+                      Welcome back, {profile.full_name.split(' ')[0]}! 🌱
                     </CardTitle>
                     <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                      {user.level}
+                      {profile.level}
                     </Badge>
                   </div>
                   <p className="text-gray-600">
@@ -113,7 +143,13 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="gamification">
-            <GameficationPanel user={user} />
+            <GameficationPanel user={{
+              name: profile.full_name,
+              email: profile.email,
+              awePoints: profile.awe_points,
+              level: profile.level,
+              avatar: profile.avatar_url || '/placeholder.svg'
+            }} />
           </TabsContent>
 
           <TabsContent value="seating">
@@ -125,7 +161,13 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="profile">
-            <UserProfile user={user} />
+            <UserProfile user={{
+              name: profile.full_name,
+              email: profile.email,
+              awePoints: profile.awe_points,
+              level: profile.level,
+              avatar: profile.avatar_url || '/placeholder.svg'
+            }} />
           </TabsContent>
         </Tabs>
       </main>
