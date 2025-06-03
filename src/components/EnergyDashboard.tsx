@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Zap, Laptop, Moon, Sun, TrendingDown, TrendingUp } from 'lucide-react';
+import { Zap, Laptop, Moon, Sun, TrendingDown, TrendingUp, Leaf } from 'lucide-react';
 
 const energyData = [
   { time: '9:00', consumption: 45, co2: 12 },
