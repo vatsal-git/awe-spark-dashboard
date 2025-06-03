@@ -1,3 +1,4 @@
+
 import dbData from "./db.json";
 
 // Types
@@ -41,7 +42,7 @@ export interface User {
   awePoints: number;
   level: string;
   avatarUrl?: string;
-  seatId?: number;
+  currentSeatId?: number; // Added this property
 }
 
 export interface Seat {
@@ -50,12 +51,16 @@ export interface Seat {
   y: number;
   occupied: boolean;
   userId?: string;
-  energyLevel: number;
+  energyLevel: "low" | "medium" | "high"; // Changed to string enum
 }
 
 export interface Zone {
   id: number;
   name: string;
+  x: number; // Added coordinate properties
+  y: number;
+  width: number;
+  height: number;
   seats: number[];
   devices: string[];
 }

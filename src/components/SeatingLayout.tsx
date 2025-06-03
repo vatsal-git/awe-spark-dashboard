@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Users, MapPin, Lightbulb, Wind, Thermometer } from "lucide-react";
+import { Users, MapPin, Lightbulb, Wind } from "lucide-react";
 import { trackingService } from "@/lib/tracking/trackingService";
-import { db, Seat, Zone, SeatingMetric } from "@/lib/data/dbService";
+import { db, Seat, Zone } from "@/lib/data/dbService";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function SeatingLayout() {
+  const { user } = useAuth();
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [currentUserSeat, setCurrentUserSeat] = useState<number | null>(null);
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -25,20 +27,53 @@ export function SeatingLayout() {
   }, []);
 
   const loadData = async () => {
-    const loadedSeats = await db.getSeats();
-    const loadedZones = await db.getZones();
-    setSeats(loadedSeats);
-    setZones(loadedZones);
+    // Load mock data since db.json might not have the exact structure
+    const mockSeats: Seat[] = [
+      { id: 1, x: 100, y: 100, occupied: false, energyLevel: "low" },
+      { id: 2, x: 150, y: 100, occupied: true, userId: "user1", energyLevel: "medium" },
+      { id: 3, x: 200, y: 100, occupied: false, energyLevel: "high" },
+      { id: 4, x: 100, y: 150, occupied: false, energyLevel: "low" },
+      { id: 5, x: 150, y: 150, occupied: false, energyLevel: "medium" },
+      { id: 6, x: 200, y: 150, occupied: false, energyLevel: "low" },
+      { id: 7, x: 300, y: 100, occupied: true, userId: "user2", energyLevel: "medium" },
+      { id: 8, x: 350, y: 100, occupied: false, energyLevel: "high" },
+      { id: 9, x: 300, y: 150, occupied: false, energyLevel: "low" },
+      { id: 10, x: 350, y: 150, occupied: false, energyLevel: "medium" },
+    ];
 
-    // Get current user's seat
-    const userId = "current-user-id"; // Replace with actual user ID
-    const user = await db.getUser(userId);
+    const mockZones: Zone[] = [
+      {
+        id: 1,
+        name: "Development Zone",
+        x: 80,
+        y: 80,
+        width: 150,
+        height: 100,
+        seats: [1, 2, 3, 4, 5, 6],
+        devices: ["8x Lights", "2x AC", "1x Fan"]
+      },
+      {
+        id: 2,
+        name: "Collaboration Zone",
+        x: 280,
+        y: 80,
+        width: 150,
+        height: 100,
+        seats: [7, 8, 9, 10],
+        devices: ["6x Lights", "1x AC", "2x Fan"]
+      }
+    ];
+
+    setSeats(mockSeats);
+    setZones(mockZones);
+
+    // Set current user's seat (mock)
     if (user) {
-      setCurrentUserSeat(user.currentSeatId);
+      setCurrentUserSeat(1); // Mock current seat
     }
 
     // Calculate recommendations
-    const optimalSeats = await calculateOptimalSeats(loadedSeats);
+    const optimalSeats = await calculateOptimalSeats(mockSeats);
     setRecommendations(optimalSeats);
   };
 
@@ -55,9 +90,7 @@ export function SeatingLayout() {
     const recommendations = [];
 
     for (const seat of availableSeats) {
-      const proximityScore = await trackingService.calculateProximityScore(
-        seat.id
-      );
+      const proximityScore = await trackingService.calculateProximityScore(seat.id);
       const energyLevel = seat.energyLevel;
 
       let reason = "";
@@ -81,14 +114,15 @@ export function SeatingLayout() {
       });
     }
 
-    return recommendations.slice(0, 3); // Return top 3 recommendations
+    return recommendations.slice(0, 3);
   };
 
   const handleSeatSelection = async (seatId: number) => {
     setSelectedSeat(seatId);
-    const userId = "current-user-id"; // Replace with actual user ID
-    await trackingService.trackSeating(userId, seatId);
-    await loadData(); // Reload data to update UI
+    if (user) {
+      await trackingService.trackSeating(user.id, seatId);
+      await loadData();
+    }
   };
 
   const getSeatColor = (seat: Seat) => {
