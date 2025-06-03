@@ -49,6 +49,14 @@ const Index = () => {
     return null;
   }
 
+  const userProfileData = {
+    name: profile.full_name || 'EcoTrack User',
+    email: profile.email || user.email || '',
+    awePoints: profile.awe_points || 0,
+    level: profile.level || 'Eco Novice',
+    avatar: profile.avatar_url || "/placeholder.svg",
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
       {/* Header */}
@@ -75,7 +83,7 @@ const Index = () => {
                 className="bg-green-100 text-green-700 hover:bg-green-200"
               >
                 <Award className="h-4 w-4 mr-1" />
-                {profile.awe_points} Awe Points
+                {userProfileData.awePoints} Awe Points
               </Badge>
               <Button variant="ghost" size="icon">
                 <Bell className="h-5 w-5" />
@@ -144,10 +152,10 @@ const Index = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-xl font-semibold text-gray-800">
-                      Welcome back, {profile.full_name.split(" ")[0]}! 🌱
+                      Welcome back, {userProfileData.name.split(" ")[0]}! 🌱
                     </CardTitle>
                     <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                      {profile.level}
+                      {userProfileData.level}
                     </Badge>
                   </div>
                   <p className="text-gray-600">
@@ -161,15 +169,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="gamification">
-            <GameficationPanel
-              user={{
-                name: profile.full_name,
-                email: profile.email,
-                awePoints: profile.awe_points,
-                level: profile.level,
-                avatar: profile.avatar_url || "/placeholder.svg",
-              }}
-            />
+            <GameficationPanel user={userProfileData} />
           </TabsContent>
 
           <TabsContent value="seating">
@@ -181,15 +181,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="profile">
-            <UserProfile
-              user={{
-                name: profile.full_name,
-                email: profile.email,
-                awePoints: profile.awe_points,
-                level: profile.level,
-                avatar: profile.avatar_url || "/placeholder.svg",
-              }}
-            />
+            <UserProfile user={userProfileData} />
           </TabsContent>
         </Tabs>
       </main>

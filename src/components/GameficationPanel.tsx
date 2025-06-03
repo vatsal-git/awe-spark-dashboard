@@ -1,9 +1,13 @@
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { supabase } from '@/integrations/supabase/client';
 import { Award, Trophy, Star, Gift, Zap, Leaf, Users } from 'lucide-react';
 
 const achievements = [
@@ -11,14 +15,6 @@ const achievements = [
   { id: 2, title: 'Dark Mode Hero', description: 'Used dark mode for 30 days', icon: Star, completed: true, points: 150 },
   { id: 3, title: 'Team Player', description: 'Optimal seating for 5 days', icon: Users, completed: false, points: 200, progress: 60 },
   { id: 4, title: 'Eco Champion', description: 'Plant 5 virtual trees', icon: Leaf, completed: false, points: 300, progress: 40 },
-];
-
-const leaderboard = [
-  { name: 'Sarah Chen', points: 2150, rank: 1 },
-  { name: 'Alex Johnson', points: 1250, rank: 2 },
-  { name: 'Mike Rodriguez', points: 1180, rank: 3 },
-  { name: 'Emma Wilson', points: 950, rank: 4 },
-  { name: 'David Kim', points: 890, rank: 5 },
 ];
 
 const rewards = [
@@ -31,14 +27,76 @@ const rewards = [
 interface GameficationPanelProps {
   user: {
     name: string;
+    email: string;
     awePoints: number;
     level: string;
   };
 }
 
 export function GameficationPanel({ user }: GameficationPanelProps) {
+  const { user: authUser } = useAuth();
+  const { updateProfile } = useUserProfile();
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const nextLevelPoints = 1500;
   const progressToNext = (user.awePoints / nextLevelPoints) * 100;
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, awe_points')
+        .order('awe_points', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Error fetching leaderboard:', error);
+        // Fallback to mock data
+        setLeaderboard([
+          { full_name: user.name, awe_points: user.awePoints, rank: 1 },
+          { full_name: 'Sarah Chen', awe_points: 2150, rank: 2 },
+          { full_name: 'Alex Johnson', awe_points: 1250, rank: 3 },
+          { full_name: 'Mike Rodriguez', awe_points: 1180, rank: 4 },
+          { full_name: 'Emma Wilson', awe_points: 950, rank: 5 },
+        ]);
+      } else {
+        const leaderboardWithRanks = data.map((profile, index) => ({
+          ...profile,
+          rank: index + 1,
+        }));
+        setLeaderboard(leaderboardWithRanks);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      // Fallback to mock data
+      setLeaderboard([
+        { full_name: user.name, awe_points: user.awePoints, rank: 1 },
+        { full_name: 'Sarah Chen', awe_points: 2150, rank: 2 },
+        { full_name: 'Alex Johnson', awe_points: 1250, rank: 3 },
+        { full_name: 'Mike Rodriguez', awe_points: 1180, rank: 4 },
+        { full_name: 'Emma Wilson', awe_points: 950, rank: 5 },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRewardRedeem = async (reward: any) => {
+    if (!authUser || user.awePoints < reward.cost) return;
+
+    try {
+      const newAwePoints = user.awePoints - reward.cost;
+      await updateProfile({ awe_points: newAwePoints });
+      console.log(`Redeemed: ${reward.title} for ${reward.cost} points`);
+    } catch (error) {
+      console.error('Error redeeming reward:', error);
+    }
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -129,34 +187,38 @@ export function GameficationPanel({ user }: GameficationPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {leaderboard.map((user, index) => (
-              <div
-                key={index}
-                className={`flex items-center space-x-3 p-3 rounded-lg ${
-                  user.name === 'Alex Johnson' ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  user.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
-                  user.rank === 2 ? 'bg-gray-300 text-gray-800' :
-                  user.rank === 3 ? 'bg-orange-400 text-orange-900' :
-                  'bg-gray-200 text-gray-700'
-                }`}>
-                  {user.rank}
+          {loading ? (
+            <div className="text-center text-gray-500">Loading leaderboard...</div>
+          ) : (
+            <div className="space-y-3">
+              {leaderboard.map((profile, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center space-x-3 p-3 rounded-lg ${
+                    profile.full_name === user.name ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    profile.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
+                    profile.rank === 2 ? 'bg-gray-300 text-gray-800' :
+                    profile.rank === 3 ? 'bg-orange-400 text-orange-900' :
+                    'bg-gray-200 text-gray-700'
+                  }`}>
+                    {profile.rank}
+                  </div>
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs bg-gradient-to-r from-green-500 to-blue-500 text-white">
+                      {(profile.full_name || 'U').split(' ').map((n: string) => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-gray-800">{profile.full_name || 'Unknown User'}</p>
+                    <p className="text-xs text-gray-600">{profile.awe_points || 0} points</p>
+                  </div>
                 </div>
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-xs bg-gradient-to-r from-green-500 to-blue-500 text-white">
-                    {user.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium text-sm text-gray-800">{user.name}</p>
-                  <p className="text-xs text-gray-600">{user.points} points</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -186,6 +248,7 @@ export function GameficationPanel({ user }: GameficationPanelProps) {
                   <Button 
                     size="sm" 
                     disabled={!reward.available || user.awePoints < reward.cost}
+                    onClick={() => handleRewardRedeem(reward)}
                     className={reward.available && user.awePoints >= reward.cost ? 
                       'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600' : 
                       ''
