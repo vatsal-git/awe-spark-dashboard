@@ -2,6 +2,9 @@
 import { db } from "../data/dbService";
 
 class TrackingService {
+  private laptopTrackingInterval: NodeJS.Timeout | null = null;
+  private currentUserId: string | null = null;
+
   async trackLaptopMetrics(userId: string, metrics: {
     isDarkMode: boolean;
     uptime: number;
@@ -12,6 +15,76 @@ class TrackingService {
       userId,
       ...metrics
     });
+  }
+
+  startLaptopTracking(userId: string) {
+    console.log("Starting laptop tracking for user:", userId);
+    this.currentUserId = userId;
+    
+    // Track laptop metrics every 30 seconds
+    this.laptopTrackingInterval = setInterval(() => {
+      this.trackCurrentLaptopState(userId);
+    }, 30000);
+
+    // Track initial state
+    this.trackCurrentLaptopState(userId);
+  }
+
+  stopLaptopTracking() {
+    console.log("Stopping laptop tracking");
+    if (this.laptopTrackingInterval) {
+      clearInterval(this.laptopTrackingInterval);
+      this.laptopTrackingInterval = null;
+    }
+    this.currentUserId = null;
+  }
+
+  private async trackCurrentLaptopState(userId: string) {
+    try {
+      // Detect dark mode
+      const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      // Calculate uptime (simulate based on session time)
+      const sessionStart = sessionStorage.getItem('sessionStart');
+      let uptime = 0;
+      if (sessionStart) {
+        uptime = (Date.now() - parseInt(sessionStart)) / 1000 / 3600; // hours
+      } else {
+        sessionStorage.setItem('sessionStart', Date.now().toString());
+      }
+
+      // Determine energy mode (simulate based on battery if available)
+      let energyMode: "power-saver" | "balanced" | "performance" = "balanced";
+      if ('getBattery' in navigator) {
+        try {
+          const battery = await (navigator as any).getBattery();
+          if (battery.charging === false && battery.level < 0.2) {
+            energyMode = "power-saver";
+          } else if (battery.charging) {
+            energyMode = "performance";
+          }
+        } catch (e) {
+          // Fallback to balanced mode
+        }
+      }
+
+      // Calculate energy consumption (simulate based on usage patterns)
+      const baseConsumption = 50; // 50W base
+      const darkModeMultiplier = isDarkMode ? 0.9 : 1.0; // 10% savings in dark mode
+      const energyModeMultiplier = energyMode === "power-saver" ? 0.7 : energyMode === "performance" ? 1.3 : 1.0;
+      const energyConsumption = baseConsumption * darkModeMultiplier * energyModeMultiplier;
+
+      await this.trackLaptopMetrics(userId, {
+        isDarkMode,
+        uptime,
+        energyMode,
+        energyConsumption
+      });
+
+      console.log("Tracked laptop metrics:", { isDarkMode, uptime, energyMode, energyConsumption });
+    } catch (error) {
+      console.error("Error tracking laptop state:", error);
+    }
   }
 
   async trackSeating(userId: string, seatId: number) {
