@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,18 +28,18 @@ export function SeatingLayout() {
   }, []);
 
   const loadData = async () => {
-    // Load mock data since db.json might not have the exact structure
+    // Load mock data with adjusted seat positions - moved seats down by 20px
     const mockSeats: Seat[] = [
-      { id: 1, x: 100, y: 100, occupied: false, energyLevel: "low" },
-      { id: 2, x: 150, y: 100, occupied: true, userId: "user1", energyLevel: "medium" },
-      { id: 3, x: 200, y: 100, occupied: false, energyLevel: "high" },
-      { id: 4, x: 100, y: 150, occupied: false, energyLevel: "low" },
-      { id: 5, x: 150, y: 150, occupied: false, energyLevel: "medium" },
-      { id: 6, x: 200, y: 150, occupied: false, energyLevel: "low" },
-      { id: 7, x: 300, y: 100, occupied: true, userId: "user2", energyLevel: "medium" },
-      { id: 8, x: 350, y: 100, occupied: false, energyLevel: "high" },
-      { id: 9, x: 300, y: 150, occupied: false, energyLevel: "low" },
-      { id: 10, x: 350, y: 150, occupied: false, energyLevel: "medium" },
+      { id: 1, x: 100, y: 120, occupied: false, energyLevel: "low" },
+      { id: 2, x: 150, y: 120, occupied: true, userId: "user1", energyLevel: "medium" },
+      { id: 3, x: 200, y: 120, occupied: false, energyLevel: "high" },
+      { id: 4, x: 100, y: 170, occupied: false, energyLevel: "low" },
+      { id: 5, x: 150, y: 170, occupied: false, energyLevel: "medium" },
+      { id: 6, x: 200, y: 170, occupied: false, energyLevel: "low" },
+      { id: 7, x: 300, y: 120, occupied: true, userId: "user2", energyLevel: "medium" },
+      { id: 8, x: 350, y: 120, occupied: false, energyLevel: "high" },
+      { id: 9, x: 300, y: 170, occupied: false, energyLevel: "low" },
+      { id: 10, x: 350, y: 170, occupied: false, energyLevel: "medium" },
     ];
 
     const mockZones: Zone[] = [
@@ -50,7 +49,7 @@ export function SeatingLayout() {
         x: 80,
         y: 80,
         width: 150,
-        height: 100,
+        height: 120,
         seats: [1, 2, 3, 4, 5, 6],
         devices: ["8x Lights", "2x AC", "1x Fan"]
       },
@@ -60,7 +59,7 @@ export function SeatingLayout() {
         x: 280,
         y: 80,
         width: 150,
-        height: 100,
+        height: 120,
         seats: [7, 8, 9, 10],
         devices: ["6x Lights", "1x AC", "2x Fan"]
       }
