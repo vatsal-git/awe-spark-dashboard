@@ -7,9 +7,11 @@ import { Users, MapPin, Lightbulb, Wind } from "lucide-react";
 import { trackingService } from "@/lib/tracking/trackingService";
 import { db, Seat, Zone } from "@/lib/data/dbService";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export function SeatingLayout() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [currentUserSeat, setCurrentUserSeat] = useState<number | null>(null);
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -125,6 +127,46 @@ export function SeatingLayout() {
     }
   };
 
+  const handleMoveToSeat = async (seatId: number) => {
+    if (!user) return;
+
+    try {
+      // Update the seats data to reflect the move
+      const updatedSeats = seats.map(seat => {
+        if (seat.id === currentUserSeat) {
+          // Free up the current seat
+          return { ...seat, occupied: false, userId: undefined };
+        }
+        if (seat.id === seatId) {
+          // Occupy the new seat
+          return { ...seat, occupied: true, userId: user.id };
+        }
+        return seat;
+      });
+
+      setSeats(updatedSeats);
+      setCurrentUserSeat(seatId);
+      setSelectedSeat(null);
+
+      // Track the seating change
+      await trackingService.trackSeating(user.id, seatId);
+
+      toast({
+        title: "Seat Changed Successfully!",
+        description: `You have moved to seat #${seatId}`,
+      });
+
+      console.log(`User moved from seat ${currentUserSeat} to seat ${seatId}`);
+    } catch (error) {
+      console.error("Error moving to seat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to move to the selected seat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getSeatColor = (seat: Seat) => {
     if (seat.id === currentUserSeat) return "#3b82f6"; // Blue for current user
     if (seat.occupied) return "#10b981"; // Green for occupied
@@ -163,10 +205,27 @@ export function SeatingLayout() {
                     strokeDasharray="5,5"
                     rx="8"
                   />
+                  {/* White background rectangle for zone label */}
+                  <rect
+                    x={zone.x + 8}
+                    y={zone.y + 8}
+                    width={zone.name.length * 9 + 12}
+                    height={22}
+                    fill="white"
+                    stroke="rgba(59, 130, 246, 0.6)"
+                    strokeWidth="1"
+                    rx="6"
+                    opacity="0.95"
+                  />
                   <text
-                    x={zone.x + 10}
-                    y={zone.y + 20}
-                    className="text-xs font-medium fill-blue-600"
+                    x={zone.x + 14}
+                    y={zone.y + 22}
+                    className="text-sm font-bold"
+                    style={{ 
+                      fontSize: '13px',
+                      fill: '#1f2937',
+                      fontWeight: '600'
+                    }}
                   >
                     {zone.name}
                   </text>
@@ -252,7 +311,7 @@ export function SeatingLayout() {
                       <Button
                         size="sm"
                         className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                        onClick={() => handleSeatSelection(seat.id)}
+                        onClick={() => handleMoveToSeat(seat.id)}
                       >
                         Move Here
                       </Button>
