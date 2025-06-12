@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { EnergyDashboard } from "@/components/EnergyDashboard";
 import { GameficationPanel } from "@/components/GameficationPanel";
 import { SeatingLayout } from "@/components/SeatingLayout";
@@ -13,10 +15,11 @@ import { ActivityLogger } from "@/components/ActivityLogger";
 import { UserProfile } from "@/components/UserProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { Leaf, Zap, Users, Award, Bell, Settings, LogOut } from "lucide-react";
+import { Leaf, Zap, Users, Award, Bell, Settings, LogOut, Moon, Sun } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [darkMode, setDarkMode] = useState(false);
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
   const navigate = useNavigate();
@@ -30,6 +33,12 @@ const Index = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+    // Here you would typically update the document class or use a theme context
+    document.documentElement.classList.toggle('dark');
   };
 
   if (authLoading || profileLoading) {
@@ -85,12 +94,27 @@ const Index = () => {
                 <Award className="h-4 w-4 mr-1" />
                 {userProfileData.awePoints} Awe Points
               </Badge>
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                      <span>Dark mode</span>
+                    </div>
+                    <Switch
+                      checked={darkMode}
+                      onCheckedChange={toggleTheme}
+                    />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut className="h-5 w-5" />
               </Button>
