@@ -24,6 +24,12 @@ const Index = () => {
   const { profile, loading: profileLoading } = useUserProfile();
   const navigate = useNavigate();
 
+  // Initialize theme on component mount
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains('dark');
+    setDarkMode(isDark);
+  }, []);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -36,9 +42,14 @@ const Index = () => {
   };
 
   const toggleTheme = () => {
-    setDarkMode(!darkMode);
-    // Here you would typically update the document class or use a theme context
-    document.documentElement.classList.toggle('dark');
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   if (authLoading || profileLoading) {
