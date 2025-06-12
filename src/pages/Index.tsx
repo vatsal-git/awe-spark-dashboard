@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EnergyDashboard } from "@/components/EnergyDashboard";
 import { GameficationPanel } from "@/components/GameficationPanel";
 import { SeatingLayout } from "@/components/SeatingLayout";
@@ -15,10 +17,11 @@ import { ActivityLogger } from "@/components/ActivityLogger";
 import { UserProfile } from "@/components/UserProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { Leaf, Zap, Users, Award, Bell, Settings, LogOut, Moon, Sun } from "lucide-react";
+import { Leaf, Zap, Users, Award, Bell, Settings, LogOut, Moon, Sun, User } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [showProfile, setShowProfile] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     // Initialize from localStorage or system preference
     if (typeof window !== 'undefined') {
@@ -60,6 +63,10 @@ const Index = () => {
 
   const toggleTheme = () => {
     setDarkMode(prevMode => !prevMode);
+  };
+
+  const handleOpenProfile = () => {
+    setShowProfile(true);
   };
 
   if (authLoading || profileLoading) {
@@ -123,6 +130,11 @@ const Index = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={handleOpenProfile}>
+                    <User className="h-4 w-4 mr-2" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
@@ -151,7 +163,7 @@ const Index = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-5 bg-background/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-background/60 backdrop-blur-sm">
             <TabsTrigger
               value="dashboard"
               className="flex items-center space-x-2"
@@ -179,15 +191,6 @@ const Index = () => {
             >
               <Leaf className="h-4 w-4" />
               <span className="hidden sm:inline">Activities</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="profile"
-              className="flex items-center space-x-2"
-            >
-              <Avatar className="h-4 w-4">
-                <AvatarFallback className="text-xs">P</AvatarFallback>
-              </Avatar>
-              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
           </TabsList>
 
@@ -224,12 +227,18 @@ const Index = () => {
           <TabsContent value="activities">
             <ActivityLogger />
           </TabsContent>
-
-          <TabsContent value="profile">
-            <UserProfile user={userProfileData} />
-          </TabsContent>
         </Tabs>
       </main>
+
+      {/* Profile Modal */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">User Profile</DialogTitle>
+          </DialogHeader>
+          <UserProfile user={userProfileData} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
