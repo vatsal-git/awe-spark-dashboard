@@ -19,16 +19,33 @@ import { Leaf, Zap, Users, Award, Bell, Settings, LogOut, Moon, Sun } from "luci
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Initialize from localStorage or system preference
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('theme');
+      if (stored) {
+        return stored === 'dark';
+      }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+  
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
   const navigate = useNavigate();
 
-  // Initialize theme on component mount
+  // Apply theme on mount and when darkMode changes
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setDarkMode(isDark);
-  }, []);
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -42,14 +59,7 @@ const Index = () => {
   };
 
   const toggleTheme = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    setDarkMode(prevMode => !prevMode);
   };
 
   if (authLoading || profileLoading) {
@@ -78,9 +88,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-green-100 sticky top-0 z-50">
+      <header className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -91,7 +101,7 @@ const Index = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                   EcoTrack
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Renewable Energy Dashboard
                 </p>
               </div>
@@ -100,7 +110,7 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <Badge
                 variant="secondary"
-                className="bg-green-100 text-green-700 hover:bg-green-200"
+                className="bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300"
               >
                 <Award className="h-4 w-4 mr-1" />
                 {userProfileData.awePoints} Awe Points
@@ -141,7 +151,7 @@ const Index = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-background/60 backdrop-blur-sm">
             <TabsTrigger
               value="dashboard"
               className="flex items-center space-x-2"
@@ -183,17 +193,17 @@ const Index = () => {
 
           <TabsContent value="dashboard" className="space-y-6">
             <div className="grid gap-6">
-              <Card className="border-0 shadow-lg bg-white/70 backdrop-blur-sm">
+              <Card className="border-0 shadow-lg bg-card/70 backdrop-blur-sm">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-semibold text-gray-800">
+                    <CardTitle className="text-xl font-semibold text-foreground">
                       Welcome back, {userProfileData.name.split(" ")[0]}! 🌱
                     </CardTitle>
                     <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white">
                       {userProfileData.level}
                     </Badge>
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     You're making a difference! Keep up the great work in our
                     sustainability journey.
                   </p>
